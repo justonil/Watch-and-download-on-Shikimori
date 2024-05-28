@@ -1,3 +1,5 @@
+#Fork with Anilibria HEVC magnets and Direct links#
+
 # Watch and download on Shikimori
 The add-on adds the ability to watch and download anime on the Shikimori.one website.
 
@@ -8,17 +10,17 @@ The add-on adds the ability to watch and download anime on the Shikimori.one web
 ### Chrome (Chromium)
 1. Install [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) extension
 2. Сlick the button  
-[![image](https://img.shields.io/static/v1?label=Tampermonkey&message=INSTALL&style=for-the-badge&color=yellow&logo=tampermonkey)](https://github.com/Malanavi/Watch-and-download-on-Shikimori/raw/main/manifest.user.js)
+[![image](https://img.shields.io/static/v1?label=Tampermonkey&message=INSTALL&style=for-the-badge&color=yellow&logo=tampermonkey)](https://github.com/justonil/Watch-and-download-on-Shikimori/raw/main/manifest.user.js)
 
 ### Opera (GX)
 1. Install [Violentmonkey](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) extension
 2. Сlick the button  
-[![image](https://img.shields.io/static/v1?label=Violentmonkey&message=INSTALL&style=for-the-badge&color=yellow&logo=tampermonkey)](https://github.com/Malanavi/Watch-and-download-on-Shikimori/raw/main/manifest.user.js)
+[![image](https://img.shields.io/static/v1?label=Violentmonkey&message=INSTALL&style=for-the-badge&color=yellow&logo=tampermonkey)](https://github.com/justonil/Watch-and-download-on-Shikimori/raw/main/manifest.user.js)
 
 ### Safari
 1. Install [Userscripts](https://apps.apple.com/app/userscripts/id1463298887) extension
 2. Сlick the button  
-[![image](https://img.shields.io/static/v1?label=Userscripts&message=INSTALL&style=for-the-badge&color=yellow&logo=safari)](https://github.com/Malanavi/Watch-and-download-on-Shikimori/raw/main/manifest.user.js)
+[![image](https://img.shields.io/static/v1?label=Userscripts&message=INSTALL&style=for-the-badge&color=yellow&logo=safari)](https://github.com/justonil/Watch-and-download-on-Shikimori/raw/main/manifest.user.js)
 
 ## Add-on features
 • Shikimori-style "Open Player" button, player, and links  
