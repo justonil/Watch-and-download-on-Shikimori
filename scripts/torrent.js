@@ -12,22 +12,39 @@ class Torrent {
     if (match) {
       const { id } = match.groups;
       const nameOfAnime = Shikimori.getNameOfAnime(id);
-      const links = [
+
+      const aniLibriaData = await AniLibria.getAnimeOnAnilibria(`https://api.anilibria.tv/v3/title/search?search=${nameOfAnime}`).catch(() => null);
+
+      const links = await Promise.all([
         { name: "RuTracker", src: `https://rutracker.org/forum/tracker.php?nm=${nameOfAnime}` },
         {
           name: "AniLibria-magnet",
-          src: `${await AniLibria.getAnimeOnAnilibria('https://api.anilibria.tv/v3/title/search?search=' + nameOfAnime)
-            .then(data => {
-              return data.list[0].torrents.list[0].magnet;
-            })
-          }`,
+          src: aniLibriaData ? aniLibriaData.list[0]?.torrents.list[0]?.magnet : null,
+        },
+        {
+          name: "AniLibriaHEVC-magnet",
+          src: aniLibriaData ? aniLibriaData.list[0]?.torrents.list[1]?.magnet : null,
+        },
+        {
+          name: "AniLibria",
+          src: aniLibriaData ? `https://www.anilibria.tv/release/${aniLibriaData.list[0]?.code}.html` : null,
         },
         { name: "Erai-raws", src: `https://www.erai-raws.info/?s=${nameOfAnime}` },
-      ];
+      ].map(async (link) => {
+        try {
+          const resolvedSrc = await link.src;
+          return { ...link, src: resolvedSrc };
+        } catch (e) {
+          console.error(`Failed to fetch link for ${link.name}`, e);
+          return null;
+        }
+      }));
+
+      const validLinks = links.filter(link => link && link.src);
 
       document.querySelectorAll(".torrent-link").forEach(link => link.remove());
 
-      const blocks = links.map((link) => {
+      const blocks = validLinks.map((link) => {
         const createdLink = this.#createLink(link.name, link.src);
         return this.#createBlock(createdLink);
       });
