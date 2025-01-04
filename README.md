@@ -43,6 +43,7 @@ The add-on adds the ability to watch and download anime on the Shikimori.one web
   
 ![image](./images/screenshots/screenshot_3.png?raw=true)
 
-4. Follow this link to find anime on a torrent tracker (RuTracker) and download  
+4. Follow this link to find anime on a torrent tracker (RuTracker) or AniLibria and download or use magnet links
   
-![image](./images/screenshots/screenshot_4.png?raw=true)
+![image](https://github.com/user-attachments/assets/e44aecba-e89b-4be8-a21c-20fb3245bf20)
+
