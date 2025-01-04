@@ -11,25 +11,37 @@ class Torrent {
     const match = Shikimori.isAnimePage(window.location);
     if (match) {
       const { id } = match.groups;
-      const nameOfAnime = Shikimori.getNameOfAnime(id);
+      const ShikiData = await AniLibria.getAnimeOnAnilibria(`https://shikimori.one/api/animes/${id}`).catch(() => null);
 
-      const aniLibriaData = await AniLibria.getAnimeOnAnilibria(`https://api.anilibria.tv/v3/title/search?search=${nameOfAnime}`).catch(() => null);
+      const aniLibriaTitles = await AniLibria.getAnimeOnAnilibria(`https://anilibria.top/api/v1/app/search/releases?query=${ShikiData.name}`).catch(() => null);
+
+      let aniLibriaData;
+      const ShikiYear = new Date(ShikiData.aired_on).getFullYear();
+      for (let i = 0; i < aniLibriaTitles.length; i++){
+          if (aniLibriaTitles[i].year == ShikiYear && aniLibriaTitles[i].type.value.toLowerCase() == ShikiData.kind.toLowerCase()){
+              aniLibriaData = await AniLibria.getAnimeOnAnilibria(`https://anilibria.top/api/v1/anime/releases/${aniLibriaTitles[i].id}`).catch(() => null);
+              break;
+          }
+      }
+
 
       const links = await Promise.all([
-        { name: "RuTracker", src: `https://rutracker.org/forum/tracker.php?nm=${nameOfAnime}` },
+        { name: "RuTracker", src: `https://rutracker.org/forum/tracker.php?nm=${ShikiData.name}` },
         {
           name: "AniLibria-magnet",
-          src: aniLibriaData ? aniLibriaData.list[0]?.torrents.list[0]?.magnet : null,
+          src: aniLibriaData ? aniLibriaData.torrents[0].magnet : null,
         },
         {
           name: "AniLibriaHEVC-magnet",
-          src: aniLibriaData ? aniLibriaData.list[0]?.torrents.list[1]?.magnet : null,
+          src: aniLibriaData ? aniLibriaData.torrents[1].magnet : null,
         },
         {
           name: "AniLibria",
-          src: aniLibriaData ? `https://www.anilibria.tv/release/${aniLibriaData.list[0]?.code}.html` : null,
+          src: aniLibriaData ? `https://www.anilibria.tv/release/${aniLibriaData.alias}.html` : null,
         },
-        { name: "Erai-raws", src: `https://www.erai-raws.info/?s=${nameOfAnime}` },
+        { name: "Erai-raws",
+         src: `https://www.erai-raws.info/?s=${ShikiData.name}`
+        },
       ].map(async (link) => {
         try {
           const resolvedSrc = await link.src;
