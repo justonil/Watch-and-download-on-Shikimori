@@ -10,7 +10,7 @@ class Torrent {
   static async #onViewChanged() {
     const match = Shikimori.isAnimePage(window.location);
     if (match) {
-      const { id } = match.groups;
+      const id = match[1];
       const ShikiData = await AniLibria.getAnimeOnAnilibria(`https://shikimori.one/api/animes/${id}`).catch(() => null);
 
       const aniLibriaTitles = await AniLibria.getAnimeOnAnilibria(`https://anilibria.top/api/v1/app/search/releases?query=${ShikiData.name}`).catch(() => null);
@@ -24,16 +24,15 @@ class Torrent {
           }
       }
 
-
       const links = await Promise.all([
         { name: "RuTracker", src: `https://rutracker.org/forum/tracker.php?nm=${ShikiData.name}` },
         {
           name: "AniLibria-magnet",
-          src: aniLibriaData ? aniLibriaData.torrents[0].magnet : null,
+          src: aniLibriaData && aniLibriaData.torrents[0] ? aniLibriaData.torrents[0].magnet : null,
         },
         {
           name: "AniLibriaHEVC-magnet",
-          src: aniLibriaData ? aniLibriaData.torrents[1].magnet : null,
+          src: aniLibriaData && aniLibriaData.torrents[1] ? aniLibriaData.torrents[1].magnet : null,
         },
         {
           name: "AniLibria",

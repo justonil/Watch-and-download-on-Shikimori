@@ -2,9 +2,8 @@
 
 class Shikimori {
   static isAnimePage(location) {
-    const isAnimePageRegEx = /\/animes\/[a-z]?(?<id>[0-9]+)-([a-z0-9]+-?)+$/;
-
-    return location.pathname.match(isAnimePageRegEx);
+    const regex = /\/animes\/([a-zA-Z0-9]+)/;
+    return location.pathname.match(regex);
   }
 
   static getWatchingEpisode(animeId) {

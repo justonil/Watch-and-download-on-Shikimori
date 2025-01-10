@@ -26,7 +26,7 @@ class Player {
         this.lang = "eng"
       }
 
-      const animeId = match.groups.id;
+      const animeId = match[1];
 
       const nameOfAnime = Shikimori.getNameOfAnime(animeId);
 
