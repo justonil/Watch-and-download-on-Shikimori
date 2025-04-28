@@ -16,13 +16,16 @@ class Torrent {
       const aniLibriaTitles = await AniLibria.getAnimeOnAnilibria(`https://anilibria.top/api/v1/app/search/releases?query=${ShikiData.name}`).catch(() => null);
 
       let aniLibriaData;
-      const ShikiYear = new Date(ShikiData.aired_on).getFullYear();
-      for (let i = 0; i < aniLibriaTitles.length; i++){
-          if (aniLibriaTitles[i].year == ShikiYear && aniLibriaTitles[i].type.value.toLowerCase() == ShikiData.kind.toLowerCase()){
-              aniLibriaData = await AniLibria.getAnimeOnAnilibria(`https://anilibria.top/api/v1/anime/releases/${aniLibriaTitles[i].id}`).catch(() => null);
-              break;
+      if (aniLibriaTitles){
+          const ShikiYear = new Date(ShikiData.aired_on).getFullYear();
+          for (let i = 0; i < aniLibriaTitles.length; i++){
+              if (aniLibriaTitles[i].year == ShikiYear && aniLibriaTitles[i].type.value.toLowerCase() == ShikiData.kind.toLowerCase()){
+                  aniLibriaData = await AniLibria.getAnimeOnAnilibria(`https://anilibria.top/api/v1/anime/releases/${aniLibriaTitles[i].id}`).catch(() => null);
+                  break;
+              }
           }
       }
+        else {console.error("anilibria data error. check api status")}
 
       const links = await Promise.all([
         { name: "RuTracker", src: `https://rutracker.org/forum/tracker.php?nm=${ShikiData.name}` },
