@@ -1,7 +1,8 @@
 "use strict";
 // Read preference (default = use .tv)
 const useAniTop = GM_getValue('useAniTop', false);
-const ApiTop = GM_getValue('ApiTop', false);;
+const ApiTop = GM_getValue('ApiTop', false);
+
 // Add menu entry to toggle the flag
 GM_registerMenuCommand(
   useAniTop
@@ -35,116 +36,109 @@ class Torrent {
     if (match) {
       const id = match[1];
       const ShikiData = await AniLibria.getAnimeOnAnilibria(`https://shikimori.one/api/animes/${id}`).catch(() => null);
+      if (!ShikiData) return; // Exit if Shikimori data fetch fails
 
-      let aniLibriaTitles;
-      if (ApiTop){
-          aniLibriaTitles = await AniLibria.getAnimeOnAnilibria(`https://anilibria.top/api/v1/app/search/releases?query=${ShikiData.name}`).catch(() => null);
-      }
-        else{
-          aniLibriaTitles = await AniLibria.getAnimeOnAnilibria(`https://api.anilibria.tv/v3/title/search?search=${ShikiData.name}`).catch(() => null);
-            // if search failed, try to find by russian name
-          if (aniLibriaTitles.list.length == 0){
-              aniLibriaTitles = await AniLibria.getAnimeOnAnilibria(`https://api.anilibria.tv/v3/title/search?search=${ShikiData.russian}`).catch(() => null);
-          }
-          aniLibriaTitles = aniLibriaTitles.list
-        }
-      let aniLibriaData;
-      let aniCode;
-      if (aniLibriaTitles){
-          const ShikiYear = new Date(ShikiData.aired_on).getFullYear();
-          if(ApiTop){
-              console.debug("using ApiTop");
-              for (let i = 0; i < aniLibriaTitles.length; i++){
-                  if (aniLibriaTitles[i].year == ShikiYear && aniLibriaTitles[i].type.value.toLowerCase() == ShikiData.kind.toLowerCase()){
-                      aniLibriaData = await AniLibria.getAnimeOnAnilibria(`https://anilibria.top/api/v1/anime/releases/${aniLibriaTitles[i].id}`).catch(() => null);
-                      aniCode = aniLibriaData.alias;
-                      break;
-                  }
-              }
-          }
-
-          else{
-              console.debug("using ApiTV");
-              for (let i = 0; i < aniLibriaTitles.length; i++){
-                  if (aniLibriaTitles[i].season.year == ShikiYear && aniLibriaTitles[i].type.string.toLowerCase() == ShikiData.kind.toLowerCase()){
-
-                      aniLibriaData = await AniLibria.getAnimeOnAnilibria(`https://api.anilibria.tv/v3/title?id=${aniLibriaTitles[i].id}`).catch(() => null);
-                      aniCode = aniLibriaData.code;
-                      break;
-                  }
-              }
-          }
-      }
-        else {console.error("anilibria data error. check api status")}
-
-      const links = await Promise.all([
+      // Step 1: Create and insert RuTracker and Erai-raws links first (independent of AniLibria API)
+      const nonAniLibriaLinks = [
         { name: "RuTracker", src: `https://rutracker.org/forum/tracker.php?nm=${ShikiData.name}` },
-          //ApiTV
-        {
-          name: "AniLibria.Tv Magnet",
-          src: !ApiTop && aniLibriaData && aniLibriaData.torrents.list[0] ? aniLibriaData.torrents.list[0].magnet : null,
-        },
-        {
-          name: "AniLibria.Tv HEVC-Magnet",
-          src: !ApiTop && aniLibriaData && aniLibriaData.torrents.list[1] ? aniLibriaData.torrents.list[1].magnet : null,
-        },
-        //ApiTop
-        {
-          name: "AniLibria.Top Magnet",
-          src: ApiTop && aniLibriaData && aniLibriaData.torrents[0] ? aniLibriaData.torrents[0].magnet : null,
-        },
-        {
-          name: "AniLibria.Top HEVC-Magnet",
-          src: ApiTop && aniLibriaData && aniLibriaData.torrents[1] ? aniLibriaData.torrents[1].magnet : null,
-        },
-        {
-          name: "AniLibria.Tv",
-          src:  !useAniTop && aniLibriaData ? `https://www.anilibria.tv/release/${aniCode}.html` : null,
-        },
-        {
-          name: "AniLibria.Top",
-          src: useAniTop && aniLibriaData ? `https://anilibria.top/anime/releases/release/${aniCode}/episodes` : null,
-        },
-        { name: "Erai-raws",
-         src: `https://www.erai-raws.info/?s=${ShikiData.name}`
-        },
-      ].map(async (link) => {
-        try {
-          const resolvedSrc = await link.src;
-          return { ...link, src: resolvedSrc };
-        } catch (e) {
-          console.error(`Failed to fetch link for ${link.name}`, e);
-          return null;
-        }
-      }));
+        { name: "Erai-raws", src: `https://www.erai-raws.info/?s=${ShikiData.name}` }
+      ];
 
-      const validLinks = links.filter(link => link && link.src);
-
-      document.querySelectorAll(".torrent-link").forEach(link => link.remove());
-
-      const blocks = validLinks.map((link) => {
-        const createdLink = this.#createLink(link.name, link.src);
-        return this.#createBlock(createdLink);
-      });
-
+      // Find insertion point
       const elements = document.querySelectorAll(".subheadline");
-      let before = null;
-
+      let insertionPoint = null;
       for (let i = 0; i < elements.length; i++) {
         if (
           elements[i].textContent.includes("on other sites") ||
           elements[i].textContent.includes("На других сайтах")
         ) {
-          before = elements[i];
+          insertionPoint = elements[i];
           break;
         }
       }
+      if (!insertionPoint) return; // Exit if insertion point not found
 
-      if (before) {
-        blocks.forEach((block) => {
-          Helpers.insertAfter(block, before);
-        });
+      // Remove any existing torrent links to avoid duplicates
+      document.querySelectorAll(".torrent-link").forEach(link => link.remove());
+
+      // Insert non-AniLibria links immediately
+      let lastInserted = insertionPoint;
+      nonAniLibriaLinks.forEach(link => {
+        const block = this.#createBlock(this.#createLink(link.name, link.src));
+        Helpers.insertAfter(block, lastInserted);
+        lastInserted = block;
+      });
+
+      // Step 2: Fetch AniLibria data asynchronously and add buttons if available
+      let aniLibriaTitles;
+      if (ApiTop) {
+        aniLibriaTitles = await AniLibria.getAnimeOnAnilibria(`https://anilibria.top/api/v1/app/search/releases?query=${ShikiData.name}`).catch(() => null);
+      } else {
+        aniLibriaTitles = await AniLibria.getAnimeOnAnilibria(`https://api.anilibria.tv/v3/title/search?search=${ShikiData.name}`).catch(() => null);
+        if (aniLibriaTitles && aniLibriaTitles.list.length === 0) {
+          aniLibriaTitles = await AniLibria.getAnimeOnAnilibria(`https://api.anilibria.tv/v3/title/search?search=${ShikiData.russian}`).catch(() => null);
+        }
+        if (aniLibriaTitles) aniLibriaTitles = aniLibriaTitles.list;
       }
+
+      if (!aniLibriaTitles) return; // Exit if AniLibria titles fetch fails
+
+      let aniLibriaData;
+      let aniCode;
+      const ShikiYear = new Date(ShikiData.aired_on).getFullYear();
+      if (ApiTop) {
+        for (let i = 0; i < aniLibriaTitles.length; i++) {
+          if (aniLibriaTitles[i].year === ShikiYear && aniLibriaTitles[i].type.value.toLowerCase() === ShikiData.kind.toLowerCase()) {
+            aniLibriaData = await AniLibria.getAnimeOnAnilibria(`https://anilibria.top/api/v1/anime/releases/${aniLibriaTitles[i].id}`).catch(() => null);
+            if (aniLibriaData) aniCode = aniLibriaData.alias;
+            break;
+          }
+        }
+      } else {
+        for (let i = 0; i < aniLibriaTitles.length; i++) {
+          if (aniLibriaTitles[i].season.year === ShikiYear && aniLibriaTitles[i].type.string.toLowerCase() === ShikiData.kind.toLowerCase()) {
+            aniLibriaData = await AniLibria.getAnimeOnAnilibria(`https://api.anilibria.tv/v3/title?id=${aniLibriaTitles[i].id}`).catch(() => null);
+            if (aniLibriaData) aniCode = aniLibriaData.code;
+            break;
+          }
+        }
+      }
+
+      if (!aniLibriaData) return; // Exit if no matching AniLibria data found
+      // Create AniLibria links
+      const aniLibriaLinks = [];
+      if (!useAniTop) {
+        aniLibriaLinks.push({ name: "AniLibria.Tv", src: `https://www.anilibria.tv/release/${aniCode}.html` });
+      } else {
+        aniLibriaLinks.push({ name: "AniLibria.Top", src: `https://anilibria.top/anime/releases/release/${aniCode}/episodes` });
+      }
+      if (!ApiTop) {
+        if (aniLibriaData.torrents.list[0]) {
+          let size = (aniLibriaData.torrents.list[0].total_size / (1.074e+9)).toFixed(2) ;
+          aniLibriaLinks.push({ name: "AniLibria.Tv Magnet " + (size)  + " GB", src: aniLibriaData.torrents.list[0].magnet });
+        }
+        if (aniLibriaData.torrents.list[1]) {
+            let size = (aniLibriaData.torrents.list[1].total_size / (1.074e+9)).toFixed(2);
+          aniLibriaLinks.push({ name: "AniLibria.Tv HEVC-Magnet "  + (size) + " GB", src: aniLibriaData.torrents.list[1].magnet });
+        }
+      } else {
+        if (aniLibriaData.torrents[0]) {
+            let size = (aniLibriaData.torrents[0].size / (1.074e+9)).toFixed(2);
+          aniLibriaLinks.push({ name: "AniLibria.Top Magnet " + (size) + " GB", src: aniLibriaData.torrents[0].magnet });
+        }
+        if (aniLibriaData.torrents[1]) {
+            let size = (aniLibriaData.torrents[1].size / (1.074e+9)).toFixed(2);
+          aniLibriaLinks.push({ name: "AniLibria.Top HEVC-Magnet " + (size) + " GB", src: aniLibriaData.torrents[1].magnet });
+        }
+      }
+
+
+      // Insert AniLibria links after the last inserted block
+      aniLibriaLinks.forEach(link => {
+        const block = this.#createBlock(this.#createLink(link.name, link.src));
+        Helpers.insertAfter(block, lastInserted);
+        lastInserted = block;
+      });
     }
   }
 
@@ -152,23 +146,25 @@ static #createLink(name, src) {
     const link = document.createElement("a");
     link.text = name;
     link.href = src;
-    link.target = "_blank";
-
+    // Only set target="_blank" for non-magnet links
+    if (!src.startsWith("magnet:")) {
+        link.target = "_blank";
+    }
     // Sanitize the name for a valid CSS class
     const className = name.toLowerCase().replace(/[\s.]+/g, '-');
 
     // Determine the icon based on the link type
     let iconName;
     if (name.includes("Magnet")) {
-      iconName = "anilibria-magnet"; // All magnet links use magnet-favicon.ico
+        iconName = "anilibria-magnet";
     } else if (name.includes("AniLibria")) {
-      iconName = "anilibria"; // All AniLibria site links use anilibria-favicon.ico
+        iconName = "anilibria";
     } else if (name === "RuTracker") {
-      iconName = "rutracker"; // RuTracker uses its own icon
+        iconName = "rutracker";
     } else if (name === "Erai-raws") {
-      iconName = "erai-raws"; // Erai-raws uses its own icon
+        iconName = "erai-raws";
     } else {
-      iconName = "default"; // Fallback icon (optional)
+        iconName = "default";
     }
 
     // Set the class on the link for specific styling
@@ -180,7 +176,7 @@ static #createLink(name, src) {
     document.head.appendChild(style);
 
     return link;
-  }
+}
 
   static #createBlock(link) {
     const block = document.createElement("div");
