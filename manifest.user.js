@@ -5,7 +5,7 @@
 // @icon         https://raw.github.com/justonil/Watch-and-download-on-Shikimori/main/images/icons/logo128.png
 // @author       Malanavi && justonil
 // @homepageURL  https://github.com/justonil/Watch-and-download-on-Shikimori
-// @version      3.2.0
+// @version      3.2.1
 // @copyright    2023, Malanavi
 // @license      GPL-3.0-or-later; https://www.gnu.org/licenses/gpl-3.0.txt
 //

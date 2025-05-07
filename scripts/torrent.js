@@ -42,9 +42,14 @@ class Torrent {
       }
         else{
           aniLibriaTitles = await AniLibria.getAnimeOnAnilibria(`https://api.anilibria.tv/v3/title/search?search=${ShikiData.name}`).catch(() => null);
+            // if search failed, try to find by russian name
+          if (aniLibriaTitles.list.length == 0){
+              aniLibriaTitles = await AniLibria.getAnimeOnAnilibria(`https://api.anilibria.tv/v3/title/search?search=${ShikiData.russian}`).catch(() => null);
+          }
           aniLibriaTitles = aniLibriaTitles.list
         }
       let aniLibriaData;
+      let aniCode;
       if (aniLibriaTitles){
           const ShikiYear = new Date(ShikiData.aired_on).getFullYear();
           if(ApiTop){
@@ -52,6 +57,7 @@ class Torrent {
               for (let i = 0; i < aniLibriaTitles.length; i++){
                   if (aniLibriaTitles[i].year == ShikiYear && aniLibriaTitles[i].type.value.toLowerCase() == ShikiData.kind.toLowerCase()){
                       aniLibriaData = await AniLibria.getAnimeOnAnilibria(`https://anilibria.top/api/v1/anime/releases/${aniLibriaTitles[i].id}`).catch(() => null);
+                      aniCode = aniLibriaData.alias;
                       break;
                   }
               }
@@ -63,6 +69,7 @@ class Torrent {
                   if (aniLibriaTitles[i].season.year == ShikiYear && aniLibriaTitles[i].type.string.toLowerCase() == ShikiData.kind.toLowerCase()){
 
                       aniLibriaData = await AniLibria.getAnimeOnAnilibria(`https://api.anilibria.tv/v3/title?id=${aniLibriaTitles[i].id}`).catch(() => null);
+                      aniCode = aniLibriaData.code;
                       break;
                   }
               }
@@ -92,11 +99,11 @@ class Torrent {
         },
         {
           name: "AniLibria.Tv",
-          src:  !useAniTop && aniLibriaData ? `https://www.anilibria.tv/release/${aniLibriaData.alias}.html` : null,
+          src:  !useAniTop && aniLibriaData ? `https://www.anilibria.tv/release/${aniCode}.html` : null,
         },
         {
           name: "AniLibria.Top",
-          src: useAniTop && aniLibriaData ? `https://anilibria.top/anime/releases/release/${aniLibriaData.alias}/episodes` : null,
+          src: useAniTop && aniLibriaData ? `https://anilibria.top/anime/releases/release/${aniCode}/episodes` : null,
         },
         { name: "Erai-raws",
          src: `https://www.erai-raws.info/?s=${ShikiData.name}`
