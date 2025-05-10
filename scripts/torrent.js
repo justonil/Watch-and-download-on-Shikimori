@@ -146,9 +146,13 @@ static #createLink(name, src) {
     const link = document.createElement("a");
     link.text = name;
     link.href = src;
-    // Only set target="_blank" for non-magnet links
-    if (!src.startsWith("magnet:")) {
-        link.target = "_blank";
+    if (src.startsWith("magnet:")) {
+        link.addEventListener('click', function(event) {
+            event.preventDefault(); // Stop the default link behavior
+            window.location.href = src; // Trigger the magnet URI directly
+        });
+    } else {
+        link.target = "_blank"; // Open non-magnet links in a new tab
     }
     // Sanitize the name for a valid CSS class
     const className = name.toLowerCase().replace(/[\s.]+/g, '-');
