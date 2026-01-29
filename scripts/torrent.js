@@ -7,7 +7,7 @@ const ApiTop = GM_getValue('ApiTop', false);
 GM_registerMenuCommand(
   useAniTop
     ? '🔗 Switch to AniLibria.tv'
-    : '🔗 Switch to AniLibria.top',
+    : '🔗 Switch to AniLiberty.top',
   () => {
     GM_setValue('useAniTop', !useAniTop);
     location.reload();
@@ -17,7 +17,7 @@ GM_registerMenuCommand(
 GM_registerMenuCommand(
   ApiTop
     ? '🔗 Switch API to AniLibria.tv'
-    : '🔗 Switch API to AniLibria.top',
+    : '🔗 Switch API to AniLiberty.top',
   () => {
     GM_setValue('ApiTop', !ApiTop);
     location.reload();
@@ -72,7 +72,7 @@ class Torrent {
       // Step 2: Fetch AniLibria data asynchronously and add buttons if available
       let aniLibriaTitles;
       if (ApiTop) {
-        aniLibriaTitles = await AniLibria.getAnimeOnAnilibria(`https://anilibria.top/api/v1/app/search/releases?query=${ShikiData.name}`).catch(() => null);
+        aniLibriaTitles = await AniLibria.getAnimeOnAnilibria(`https://aniliberty.top/api/v1/app/search/releases?query=${ShikiData.name}`).catch(() => null);
       } else {
         aniLibriaTitles = await AniLibria.getAnimeOnAnilibria(`https://api.anilibria.tv/v3/title/search?search=${ShikiData.name}`).catch(() => null);
         if (aniLibriaTitles && aniLibriaTitles.list.length === 0) {
@@ -89,7 +89,7 @@ class Torrent {
       if (ApiTop) {
         for (let i = 0; i < aniLibriaTitles.length; i++) {
           if (aniLibriaTitles[i].year === ShikiYear && aniLibriaTitles[i].type.value.toLowerCase() === ShikiData.kind.toLowerCase()) {
-            aniLibriaData = await AniLibria.getAnimeOnAnilibria(`https://anilibria.top/api/v1/anime/releases/${aniLibriaTitles[i].id}`).catch(() => null);
+            aniLibriaData = await AniLibria.getAnimeOnAnilibria(`https://aniliberty.top/api/v1/anime/releases/${aniLibriaTitles[i].id}`).catch(() => null);
             if (aniLibriaData) aniCode = aniLibriaData.alias;
             break;
           }
@@ -110,7 +110,7 @@ class Torrent {
       if (!useAniTop) {
         aniLibriaLinks.push({ name: "AniLibria.Tv", src: `https://www.anilibria.tv/release/${aniCode}.html` });
       } else {
-        aniLibriaLinks.push({ name: "AniLibria.Top", src: `https://anilibria.top/anime/releases/release/${aniCode}/episodes` });
+        aniLibriaLinks.push({ name: "AniLiberty.Top", src: `https://aniliberty.top/anime/releases/release/${aniCode}/episodes` });
       }
       if (!ApiTop) {
         if (aniLibriaData.torrents.list[0]) {
@@ -124,11 +124,11 @@ class Torrent {
       } else {
         if (aniLibriaData.torrents[0]) {
             let size = (aniLibriaData.torrents[0].size / (1.074e+9)).toFixed(2);
-          aniLibriaLinks.push({ name: "AniLibria.Top Magnet " + (size) + " GB", src: aniLibriaData.torrents[0].magnet });
+          aniLibriaLinks.push({ name: "AniLiberty Magnet " + (size) + " GB", src: aniLibriaData.torrents[0].magnet });
         }
         if (aniLibriaData.torrents[1]) {
             let size = (aniLibriaData.torrents[1].size / (1.074e+9)).toFixed(2);
-          aniLibriaLinks.push({ name: "AniLibria.Top HEVC-Magnet " + (size) + " GB", src: aniLibriaData.torrents[1].magnet });
+          aniLibriaLinks.push({ name: "AniLiberty HEVC-Magnet " + (size) + " GB", src: aniLibriaData.torrents[1].magnet });
         }
       }
 
@@ -163,6 +163,8 @@ static #createLink(name, src) {
         iconName = "anilibria-magnet";
     } else if (name.includes("AniLibria")) {
         iconName = "anilibria";
+    } else if (name.includes("AniLiberty")) {
+        iconName = "aniliberty";
     } else if (name === "RuTracker") {
         iconName = "rutracker";
     } else if (name === "Erai-raws") {
