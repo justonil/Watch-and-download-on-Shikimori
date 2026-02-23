@@ -5,7 +5,7 @@
 // @icon         https://raw.github.com/justonil/Watch-and-download-on-Shikimori/main/images/icons/logo128.png
 // @author       Malanavi && justonil
 // @homepageURL  https://github.com/justonil/Watch-and-download-on-Shikimori
-// @version      3.2.5
+// @version      3.2.6
 // @copyright    2023, Malanavi
 // @license      GPL-3.0-or-later; https://www.gnu.org/licenses/gpl-3.0.txt
 //
@@ -15,6 +15,7 @@
 //
 // @match        *://shikimori.one/animes/*
 // @match        *://shiki.one/animes/*
+// @match        *://shikimori.io/animes/*
 //
 // @require      https://raw.github.com/justonil/Watch-and-download-on-Shikimori/main/scripts/helpers/helpers.js
 // @require      https://raw.github.com/justonil/Watch-and-download-on-Shikimori/main/scripts/helpers/shikimori.js
