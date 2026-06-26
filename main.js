@@ -168,9 +168,15 @@ class TorrentLinks {
         e.preventDefault();
         window.location.href = href;
       });
-    } else if (name.toLowerCase().includes("anilib")) iconType = "anilibria";
-    else if (name.toLowerCase().includes("rutracker")) iconType = "rutracker";
-    else if (name.toLowerCase().includes("erai")) iconType = "erai-raws";
+    } else {
+      // Все остальные ссылки открываются в новой вкладке
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+
+      if (name.toLowerCase().includes("anilib")) iconType = "anilibria";
+      else if (name.toLowerCase().includes("rutracker")) iconType = "rutracker";
+      else if (name.toLowerCase().includes("erai")) iconType = "erai-raws";
+    }
 
     const uniqueClass = `ico-v${Math.random().toString(36).substr(2, 5)}`;
     link.classList.add(uniqueClass);
